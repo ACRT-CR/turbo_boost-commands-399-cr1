@@ -64,7 +64,8 @@ module TurboReflex::Controller
     return false if request.get? && client_turbo_reflex_token.blank?
     return false unless valid_turbo_reflex_token?
     return false unless turbo_reflex_instance.is_a?(TurboReflex::Base)
-    turbo_reflex_instance.respond_to? turbo_reflex_method_name
+    ancestors = turbo_reflex_class.ancestors[0...turbo_reflex_class.ancestors.index(TurboReflex::Base)]
+    ancestors.any? { |a| a.public_instance_methods(false).any? turbo_reflex_method_name.to_sym }
   end
 
   def turbo_reflex_performed?
@@ -91,7 +92,7 @@ module TurboReflex::Controller
   end
 
   def client_turbo_reflex_token
-    request.headers["Turbo-Reflex"].to_s
+    (request.headers["Turbo-Reflex"] || turbo_reflex_params[:token]).to_s
   end
 
   def new_turbo_reflex_token
